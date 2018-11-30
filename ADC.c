@@ -1,5 +1,5 @@
+#include <ADC.h>
 #include <msp430g2553.h>
-#include "ADC.h"
 
 __interrupt void ADC10_ISR(void){
 __bic_SR_register_on_exit(CPUOFF);

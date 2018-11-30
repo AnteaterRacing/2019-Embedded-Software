@@ -1,9 +1,9 @@
+#include <ADC.h>
+#include <Faults.h>
 #include <msp430g2553.h>
-#include "Faults.h"
-#include "PWM.h"
-#include "ADC.h"
-#include "UART.h"
+#include <PWM.h>
 #include <stdint.h>
+#include <UART.h>
 /**
  * main.c
  */
@@ -27,11 +27,11 @@ int main(void)
         while (ADC10CTL1 & BUSY);
         ADC10SA = (unsigned int)adc;
    //     ADC10CTL0 |= ENC + ADC10SC;
-
-        test_UART(0);
-        test_UART(1);
-        test_UART(2);
-        test_UART(3);
+        UART_String("Hi Sai");
+//        test_UART(0);
+//        test_UART(1);
+//        test_UART(2);
+//        test_UART(3);
     }
 
 //        ADC_Values();

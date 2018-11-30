@@ -1,6 +1,6 @@
+#include <ADC.h>
 #include <msp430g2553.h>
-#include <source/ADC.c>
-#include "UART.h"
+#include <UART.h>
 
 void init_UART(){
     P1SEL = BIT1 + BIT2;      //Sets pin 1.1 to transfer and receive data

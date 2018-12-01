@@ -17,21 +17,28 @@ int main(void)
     WDTCTL = WDTPW | WDTHOLD;   // stop watchdog timer
     BCSCTL1 = CALBC1_1MHZ; // Set range
     DCOCTL = CALDCO_1MHZ;
-    init_ADC();
-    init_UART();
-    __enable_interrupt();
+  //  init_ADC();
+ //   init_UART();
+    init_PWM();
+   // __enable_interrupt();
 
     while (1) {
+        TA1CCR1 |= 156;
+        TA1CTL |= TASSEL_2 + MC_1;
+        TA0CCR1 = 313;
+        TA0CTL = TASSEL_2 + MC_1;
+        __bis_SR_register(LPM0_bits);
+//        ADC10CTL0 &= ~ENC;         // Sampling and conversion start
+//        while (ADC10CTL1 & ADC10BUSY);
+//        ADC10SA = (unsigned int)adc;
+//        ADC10CTL0 |= ENC + ADC10SC;
+//      __bis_SR_register(CPUOFF + GIE);
+  //      UART_String("Hi Sai");
 
-        ADC10CTL0 &= ~ENC;         // Sampling and conversion start
-        while (ADC10CTL1 & BUSY);
-        ADC10SA = (unsigned int)adc;
-   //     ADC10CTL0 |= ENC + ADC10SC;
-        UART_String("Hi Sai");
-//        test_UART(0);
-//        test_UART(1);
-//        test_UART(2);
-//        test_UART(3);
+//        test_UART(adc[0]);
+//        test_UART(adc[1]);
+//        test_UART(adc[2]);
+//        test_UART(adc[3]);
     }
 
 //        ADC_Values();

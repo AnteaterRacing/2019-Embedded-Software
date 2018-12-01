@@ -34,11 +34,7 @@ void test_UART(unsigned int buf){
     UART_String("\n\r");
 }
 
-void UART_Int (int uart_data){
-    while (UCA0STAT & UCBUSY);
-    UCA0TXBUF = uart_data;
-    UCA0TXBUF = 0;
-}
+
 
 void UART_Char (char uart_data){
     while (UCA0STAT & UCBUSY);

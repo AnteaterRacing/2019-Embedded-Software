@@ -17,7 +17,7 @@ int APPS_Fault(int acc1, int acc2){
     //102 is 10% of 1023 which is the max value for ADC inputs
     //if acc1 or 2 is <10 then there is a disconnect on the line since it is pulled down.
     //if apps flag has been already triggered but fault is still occurring, do nothing
-    acc2 = 1023 - (acc2*4.5);		//Accelerator 2 potentiometer has a negative transfer function to Accelerator 1
+    acc2 = 1023 - acc2;		//Accelerator 2 potentiometer has a negative transfer function to Accelerator 1
     if((abs(acc1-acc2) > 102) || (acc1 < 10) || (acc2 < 10)) {
         return 1;
     }
@@ -29,7 +29,7 @@ int APPS_Fault(int acc1, int acc2){
 
 //returns 1 if BSE fault, 0 if no fault (checks that brake is not depressed when acc is depressed >25%)
 int BSE_Fault(int brakeAngle, int acc1, int acc2){
-    acc2 = 1023 - (acc2*4.5);		//Accelerator 2 potentiometer has a negative transfer function to Accelerator 1
+    acc2 = 1023 - acc2;		//Accelerator 2 potentiometer has a negative transfer function to Accelerator 1
     if((BSE_flag) && (acc1 > 51 || acc2 > 51)) { //51 is 5% of 1023
         return 1;
     }

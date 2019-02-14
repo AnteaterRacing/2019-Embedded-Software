@@ -8,7 +8,7 @@ micro-controller with the requirements of handling driver input of Lithium, UC I
 competing in Lincoln, Nebraska. 
 */
 
-unsigned int adc[6];
+unsigned int adc[4];
 int acc1Input;
 int acc2Input;
 int brakeInput;

@@ -4,7 +4,7 @@ Engineer: Lucas Juttner
 Company: UC Irvine Anteater Electric Racing
 Date: February 12, 2019
 Description: The Driver Input Module (DIM) is a Texas Instruments MSP430G2ET (implemented with a G2553 integrated circuit) 
-micro-controller with the requirements of handling driver input of Lithium, UC Irvine’s 2019 FSAE Electric Racecar 
+micro-controller with the requirements of handling driver input of Lithium, UC Irvines 2019 FSAE Electric Racecar
 competing in Lincoln, Nebraska. 
 */
 
@@ -29,18 +29,18 @@ void init_PWM(){
 }
 
 void setThrottleValue(int accL, int accR){
-    if(accL < 5){
-        accL = 5;
-    }
-    else if(accL > 1015){
-        accL = 1015;
-    }
-    if(accR < 5){
-        accR = 5;
-    }
-    else if(accR > 1015){
-        accR = 1015;
-    }
+//    if(accL < 5){
+//        accL = 5;
+//    }
+//    else if(accL > 1015){
+//        accL = 1015;
+//    }
+//    if(accR < 5){
+//        accR = 5;
+//    }
+//    else if(accR > 1015){
+//        accR = 1015;
+//    }
     TA1CCR1 = accL;
     TA0CCR1 = accR;
   //      __bis_SR_register(LPM0_bits);

@@ -1,13 +1,3 @@
-/*
-Component: Driver Input Module
-Engineer: Lucas Juttner
-Company: UC Irvine Anteater Electric Racing
-Date: February 12, 2019
-Description: The Driver Input Module (DIM) is a Texas Instruments MSP430G2ET (implemented with a G2553 integrated circuit) 
-micro-controller with the requirements of handling driver input of Lithium, UC Irvine’s 2019 FSAE Electric Racecar 
-competing in Lincoln, Nebraska. 
-*/
-
 #include <ADC.h>
 #include <msp430g2553.h>
 
@@ -39,7 +29,8 @@ void read_ADC(){
     __bis_SR_register(CPUOFF + GIE);
 
     steeringInput = adc[0];
-    brakeInput = adc[3];
-    acc1Input = adc[4];
+    brakeInput = adc[1];
+    acc1Input = adc[2];
     acc2Input = adc[5];
+
 }

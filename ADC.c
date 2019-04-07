@@ -1,13 +1,3 @@
-/*
-Component: Driver Input Module
-Engineer: Lucas Juttner
-Company: UC Irvine Anteater Electric Racing
-Date: February 12, 2019
-Description: The Driver Input Module (DIM) is a Texas Instruments MSP430G2ET (implemented with a G2553 integrated circuit) 
-micro-controller with the requirements of handling driver input of Lithium, UC Irvine’s 2019 FSAE Electric Racecar 
-competing in Lincoln, Nebraska. 
-*/
-
 #include <ADC.h>
 #include <msp430g2553.h>
 
@@ -25,10 +15,10 @@ void __attribute__ ((interrupt(ADC10_VECTOR))) ADC10_ISR (void)
 }
 
 void init_ADC(){
-    ADC10CTL1 = INCH_5 + CONSEQ_1; //Channel 5 down to 0  and sets up single channel conversion
+    ADC10CTL1 = INCH_3 + CONSEQ_1; //Channel 5 down to 0  and sets up single channel conversion
     ADC10CTL0 = ADC10SHT_2 + MSC + ADC10ON + ADC10IE;
-    ADC10DTC1 = 6;
-    ADC10AE0 = BIT5 + BIT4 + BIT3 + BIT0;   //enables analog on pin 1.0, 1.3, 1.4, and 1.5
+    ADC10DTC1 = 4;
+    ADC10AE0 = BIT3 + BIT2 + BIT1 + BIT0;   //enables analog on pin 1.0, 1.1, 1.2, and 1.3
 }
 
 void read_ADC(){
@@ -41,13 +31,6 @@ void read_ADC(){
     steeringInput = adc[0];
     brakeInput = adc[1];
     acc1Input = adc[2];
-    acc2Input = adc[5];
-
-    if(acc1Input < 50){
-        acc1Input = 0;
-    }
-    else if(acc1Input > 923){
-        acc1Input = 1023;
-    }
+    acc2Input = adc[3];
 
 }

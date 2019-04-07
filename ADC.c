@@ -39,7 +39,15 @@ void read_ADC(){
     __bis_SR_register(CPUOFF + GIE);
 
     steeringInput = adc[0];
-    brakeInput = adc[3];
-    acc1Input = adc[4];
+    brakeInput = adc[1];
+    acc1Input = adc[2];
     acc2Input = adc[5];
+
+    if(acc1Input < 50){
+        acc1Input = 0;
+    }
+    else if(acc1Input > 923){
+        acc1Input = 1023;
+    }
+
 }

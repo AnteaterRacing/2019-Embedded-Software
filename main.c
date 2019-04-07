@@ -28,7 +28,7 @@ int main(void)
     init_PWM();		//initiate PWM
     while (1) {
 		read_ADC();		//read input from potentiometers
-		
+		//make sure to calibrate acc2Input either here, or in both the APPS and BSE fault functions
         if(APPS_Fault(acc1Input,acc2Input) || BSE_Fault(brakeInput,acc1Input,acc2Input)){
            AcceleratorL = 0;		//Set throttle signals to 0 if fault occurs
            AcceleratorR = 0;

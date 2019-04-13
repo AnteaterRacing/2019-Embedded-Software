@@ -68,8 +68,8 @@
 
 //########################## ALLGEMEIN DEFINES #######################################################################################################################################
 
-#define F_CPU       1000000                                                      // Frequenz mit der die CPU arbeitet
-
+//#define F_CPU       1000000                                                      // Frequenz mit der die CPU arbeitet
+#define F_CPU         2000000
 #define DELAY_1s    F_CPU                                                        // Für __delay_cycles() ...
 #define DELAY_100ms (F_CPU / 10)                                                 // ...
 #define DELAY_10ms  (F_CPU / 100)                                                // ...

@@ -45,10 +45,10 @@ int main(void)
 
 //    while(1){
 //        read_ADC();
-//        if(P2IN & 2){
+//        if(P2IN & BIT1){
 //            startButton = 1;
 //        }
-//        if(brakeInput > 0 && startButton==1){
+//        if(brakeInput > 0x00 && startButton==1){
             while (1) {
                 read_ADC();
         //      if(APPS_Fault(acc1Input,acc2Input)){
@@ -64,10 +64,13 @@ int main(void)
                 CAN_Data[0] = steeringInput >> 2;
                 CAN_Data[1] = brakeInput >> 2;
                 CAN_Data[2] = acc1Input >> 2;
+//                P1OUT ^= 0;
+ //               __delay_cycles(DELAY_1s);
                 if(MCP2515_spi_test ()){
                     P1OUT ^= 0;                                                               // P1.0 Toggle
-        //            __delay_cycles(DELAY_1s);
+//                    __delay_cycles(DELAY_1s);
                 }
+
 //            }
 //        }
     }
@@ -77,7 +80,7 @@ int main(void)
 __interrupt void Port_1(void)
 {
   MCP2515_can_rx0(&can_rx);                                                      // Read information in RX0
-  __delay_cycles(DELAY_10ms);                                                   // Wait 10ms
+  //__delay_cycles(DELAY_10ms);                                                   // Wait 10ms
   int i;
   for(i = 0; i < 3; i++){
       can_tx.data[i] = CAN_Data[i];

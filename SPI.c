@@ -56,6 +56,7 @@ void write_MCP2515(uint8_t addr, uint8_t data){
     transmit_MCP2515_SPI(addr);
     transmit_MCP2515_SPI(data);
     MCP2515_CS_HIGH;
+   // __delay_cycles(DELAY_100us);
     __delay_cycles(DELAY_1ms);
 }
 
@@ -173,7 +174,7 @@ void MCP2515_init(void){
 
   write_MCP2515(MCP2515_CANCTRL, 0x00);
 
-  __delay_cycles(DELAY_1s);
+  //__delay_cycles(DELAY_1s);
 }
 
 void bit_modify_MCP2515(uint8_t addr, uint8_t mask, uint8_t data){

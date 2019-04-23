@@ -1,7 +1,16 @@
+//##########################################################################################################################################################
+// Anteater Electric Racing  "Driver Input Module"
+//
+// Engineer: Lucas Juttner
+// Date: 4/23/2019
+// School: University of California, Irvine
+// File: Faults.h
+//
+// Description: Function checks fault conditions for accelrator pedal position sensors
+//
+//##########################################################################################################################################################
+
 #include <stdint.h>
 
-//returns 1 if fault, 0 if no fault. (checks acc pedal transfer functions)
 int APPS_Fault(int,int);
 
-//returns 1 if BSE fault, 0 if no fault (checks that acc is not depressed when brake is depressed >10%)
-int BSE_Fault(int,int,int);

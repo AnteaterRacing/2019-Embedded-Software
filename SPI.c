@@ -1,27 +1,46 @@
+//##########################################################################################################################################################
+// Anteater Electric Racing  "Driver Input Module"
+//
+// Engineer: Lucas Juttner
+// Date: 4/23/2019
+// School: University of California, Irvine
+// File: SPI.c
+//
+// Description: Functions that initialize SPI communication, and provide all functions needed for CAN Communication
+//
+// Special thanks to ElectroDummies and K. Evangelos for their tutorial and sample code for CAN communication
+// Their tutorial can be found here:  http://www.electrodummies.net/en/msp430-2/msp430-can-interface/
+//##########################################################################################################################################################
+
 #include <SPI.h>
 #include <msp430g2553.h>
 #include <mcp2515.h>
 #include <stdint.h>
 #include <ADC.h>
+
+//----------------------------------------------- Function to Initialize SPI ------------------------------------------------------
+
 void init_MCP2515_SPI(){
 
-    P1SEL = BIT5 + BIT6 + BIT7;    //1.5 is clock source  1.6 SOMI   1.7 SIMO
+    P1SEL = BIT5 + BIT6 + BIT7;     //1.5 is clock source,  1.6 SOMI,   1.7 SIMO
     P1SEL2 = BIT5 + BIT6 + BIT7;
 
     P2DIR |= BIT0;
-    P2OUT |= BIT0;          //slave select pin
+    P2OUT |= BIT0;                  //Set P2.0 as slave select pin
 
-    UCB0CTL1 |= UCSWRST;     //USCI software reset (reset to begin initialization)
+    UCB0CTL1 |= UCSWRST;                                       //USCI software reset (reset to begin initialization)
     UCB0CTL0 |= UCCKPL + UCMSB + UCMST + UCMODE_0 + UCSYNC;    //Most sig bit first, set as master, spi mode on
-    UCB0CTL1 |= UCSSEL_2;   //use SMCLK
-    UCB0BR0 |= 0X02;    //clock divider
+    UCB0CTL1 |= UCSSEL_2;                                      //Use SMCLK for clock source
+    UCB0BR0 |= 0X02;                                           //Divide clock by 2
     UCB0BR1 = 0;
-    UCB0CTL1 &= ~UCSWRST; //initialize USCI state machine
+    UCB0CTL1 &= ~UCSWRST;                                      //initialize USCI state machine
 
     __delay_cycles(DELAY_100ms);
     while(!(IFG2 & UCB0TXIFG));
-    UCB0TXBUF = 0x00;
+    UCB0TXBUF = 0x00;               //Initialize transfer buffer at 0x00
 }
+
+//----------------------------------------------- Function to Transmit via SPI ------------------------------------------------------
 
 unsigned char transmit_MCP2515_SPI(unsigned char value){
     UCB0TXBUF = value;
@@ -29,6 +48,7 @@ unsigned char transmit_MCP2515_SPI(unsigned char value){
     return UCB0RXBUF;
 }
 
+//----------------------------------------------- Function to Reset MCP2515 chip ------------------------------------------------------
 void MCP2515_reset(){
     MCP2515_CS_LOW;
     transmit_MCP2515_SPI(MCP2515_RESET);
@@ -36,6 +56,8 @@ void MCP2515_reset(){
 
     __delay_cycles(DELAY_100us);
 }
+
+//----------------------------------------------- Function to Initialize CAN Structs------------------------------------------------------
 
 void init_MCP2515_CANVariable(can_t * can){
     can -> COB_ID = 0x001;
@@ -50,6 +72,7 @@ void init_MCP2515_CANVariable(can_t * can){
     }
 }
 
+//----------------------------------------------- Function to Write to MCP2515 chip ------------------------------------------------------
 void write_MCP2515(uint8_t addr, uint8_t data){
     MCP2515_CS_LOW;
     transmit_MCP2515_SPI(MCP2515_WRITE);
@@ -60,19 +83,23 @@ void write_MCP2515(uint8_t addr, uint8_t data){
     __delay_cycles(DELAY_1ms);
 }
 
+//------------------------------------- Function to Write to multiple registers of MCP2515 chip ----------------------------------------------
+
 void write_many_registers_MCP2515(uint8_t addr, uint8_t len, uint8_t *data){
-  MCP2515_CS_LOW;                                                                // Starte Frame in dem ich !CS auf Low Ziehe. Sende ...
-  transmit_MCP2515_SPI(MCP2515_WRITE);                                           // Schreibbefehl ; Befehl 0x02, ...
+  MCP2515_CS_LOW;
+  transmit_MCP2515_SPI(MCP2515_WRITE);
   transmit_MCP2515_SPI(addr);
   char i;
-  for(i = 0; i < len; i++)                                                    // solange i < datenlänge,
+  for(i = 0; i < len; i++)
   {
-    transmit_MCP2515_SPI(*data);                                                 // sende Daten für diese Adresse, ...
-    data++;                                                          // nächstes byte vorbereiten, ...
+    transmit_MCP2515_SPI(*data);
+    data++;
   }
-  MCP2515_CS_HIGH;                                                               // beende den Frame in dem ich !CS wieder auf High setze und ...
-  __delay_cycles(DELAY_100us);                                                   // warte ein bischen.-
+  MCP2515_CS_HIGH;
+  __delay_cycles(DELAY_100us);
 }
+
+//----------------------------------------------- Function to Read from MCP2515 chip ------------------------------------------------------
 
 uint8_t read_MCP2515(uint8_t addr){
     uint8_t data;
@@ -83,6 +110,8 @@ uint8_t read_MCP2515(uint8_t addr){
     __delay_cycles(DELAY_100us);
     return data;
 }
+
+//----------------------------------------------- Function to Read from multiple registers of MCP2515 chip---------------------------------------------
 
 void read_many_registers_MCP2515(uint8_t addr, uint8_t length, uint8_t *data){
     MCP2515_CS_LOW;
@@ -96,6 +125,8 @@ void read_many_registers_MCP2515(uint8_t addr, uint8_t length, uint8_t *data){
     MCP2515_CS_HIGH;
     __delay_cycles(DELAY_100us);
 }
+
+//----------------------------------------------- Function to Write CAN ID to MCP2515 chip ------------------------------------------------------
 
 void write_id_MCP2515(uint8_t addr, BOOL ext, unsigned long id){
     uint16_t canid;
@@ -126,6 +157,8 @@ void write_id_MCP2515(uint8_t addr, BOOL ext, unsigned long id){
     __delay_cycles(DELAY_100us);
 }
 
+//----------------------------------------------- Function to Read ID from MCP2515 chip ------------------------------------------------------
+
 void read_id_MCP2515(uint8_t addr, unsigned long* id){
   uint16_t ID_Low, ID_High;
   if(addr == MCP2515_RXB0SIDL)
@@ -144,38 +177,33 @@ void read_id_MCP2515(uint8_t addr, unsigned long* id){
   }
 }
 
+//----------------------------------------------- Function to Initialize MCP2515 chip ------------------------------------------------------
+
 void MCP2515_init(void){
-  // ------ 1. Resete den Chip ------------------------------------------------
 
-  MCP2515_reset ();                                                              // Reset MCP2515
+  MCP2515_reset ();                           // Reset MCP2515
 
-  __delay_cycles(DELAY_10ms);                                                    // Allow to reset
-
-
-
-  write_MCP2515(MCP2515_CANCTRL, 0x88);                                          // CAN Controel-Register. Gehe Konfiguration-Modus (Seite 58), eigentlich sollte aber dieser automatisch nach neustart dort sein
-  write_MCP2515(MCP2515_CANINTE, 0x03);                                          // Interrupt Enable-Register.  Aktiviere NUR RX0- und RX1-Interrupts (Datenblatt, Seite 50)
-  write_MCP2515(MCP2515_TXB0CTRL, 0x03);                                         // Transmit Buffer Control-Register (Datenblatt, Seite 18). Highes Message Priority (interessant wenn mehrere Buffer genutzt)
+  __delay_cycles(DELAY_10ms);                 // Allow to reset
 
 
 
-  write_MCP2515(MCP2515_CNF1,0x00);                                              // Bei 16MHz -> 250kb/s. Beachte um mehr als 125kBaud zu bekommen, muss ein externer Quarz von 16MHz ...
-  write_MCP2515(MCP2515_CNF2,0xb9);                                          // angelötet sein. Die Werte für CNF1, CNF2 und CNF3, kann man leicht aus der Microchi-Software bekommen. ...
-  write_MCP2515(MCP2515_CNF3,0x05);                                      // Dazu lade Programm: "Microchip Can Bit Timing Calculator" runter und führe es als ADMIN aus.-
+  write_MCP2515(MCP2515_CANCTRL, 0x88);       //Set CAN Control register to configuration mode
+  write_MCP2515(MCP2515_CANINTE, 0x03);       //Set CAN to enable interrupts
+  write_MCP2515(MCP2515_TXB0CTRL, 0x03);      //Set high message priority in transfer control register
 
+  write_MCP2515(MCP2515_CNF1,0x00);           //Sets 125kb/s transfer speed using 4MHz SPI clock
+  write_MCP2515(MCP2515_CNF2,0xb9);
+  write_MCP2515(MCP2515_CNF3,0x05);
 
-
-  write_MCP2515(MCP2515_RXB0CTRL, 0x64);                                         // Receive Buffer 0 Control, Alle Nachrichten Empfangen, falls nötig RX1 weiterleiten (siehe Datenblatt, Seite 27)
-  write_MCP2515(MCP2515_RXB1CTRL, 0x60);                                         // Receive Buffer 1 Control, Alle Nachrichten Empfangen (siehe Datenblatt, Seite 28)
-  write_MCP2515(MCP2515_BFPCTRL, 0x00);                                          // Deaktiviere RXnBF Pins (Pin 10 und 11, siehe Datenblatt, Seite 29), lösen daher kein IR an den Pin aus.
-  write_MCP2515(MCP2515_TXRTSCTRL , 0x00);                                       // Deaktiviere RTS Pins (Pin 4,5 und 6, siehe Datenblatt, Seite 19), lösen daher kein IR an den Pin aus.
-
-
+  write_MCP2515(MCP2515_RXB0CTRL, 0x64);      //Receive Buffer 0 Control - receive all messages
+  write_MCP2515(MCP2515_RXB1CTRL, 0x60);      //Receive Buffer 1 Control - receive all messages
+  write_MCP2515(MCP2515_BFPCTRL, 0x00);       //Disable RxnBF pins
+  write_MCP2515(MCP2515_TXRTSCTRL , 0x00);    //Disable RTS pins
 
   write_MCP2515(MCP2515_CANCTRL, 0x00);
-
-  //__delay_cycles(DELAY_1s);
 }
+
+//----------------------------------------------- Function to Modify single bit in register ------------------------------------------------------
 
 void bit_modify_MCP2515(uint8_t addr, uint8_t mask, uint8_t data){
   MCP2515_CS_LOW;
@@ -190,6 +218,8 @@ void bit_modify_MCP2515(uint8_t addr, uint8_t mask, uint8_t data){
   __delay_cycles(DELAY_100us);
 }
 
+//----------------------------------------------- Functions to Send CAN data ------------------------------------------------------
+
 void MCP2515_can_tx0(can_t *can){
   if(can->dlc > 8) can->dlc = 8;
 
@@ -201,14 +231,14 @@ void MCP2515_can_tx0(can_t *can){
       befehl = befehl | 0x40;
       if(befehl == 0x03) return;
       write_MCP2515(MCP2515_TXB0DLC, can->dlc | 0x40);
-  } // if (rtr)
+  }
 
   else
   {
     write_MCP2515(MCP2515_TXB0DLC, can->dlc);
     write_many_registers_MCP2515(MCP2515_TXB0D0, can->dlc, can->data);
     write_MCP2515(MCP2515_TXB0CTRL, 0x0B);
-  } // else (rtr)
+  }
 }
 
 void MCP2515_can_tx1(can_t *can){
@@ -222,14 +252,14 @@ void MCP2515_can_tx1(can_t *can){
       befehl = befehl | 0x40;
       if(befehl == 0x03) return;
       write_MCP2515(MCP2515_TXB1DLC, can->dlc | 0x40);
-  } // if (rtr)
+  }
 
   else
   {
     write_MCP2515(MCP2515_TXB1DLC, can->dlc);
     write_many_registers_MCP2515(MCP2515_TXB1D0, can->dlc, can->data);
     write_MCP2515(MCP2515_TXB1CTRL, 0x0B);
-  } // else (rtr)
+  }
 }
 
 void MCP2515_can_tx2(can_t *can){
@@ -252,6 +282,8 @@ void MCP2515_can_tx2(can_t *can){
     write_MCP2515(MCP2515_TXB2CTRL, 0x0B);
   }
 }
+
+//----------------------------------------------- Functions to Receive CAN data ------------------------------------------------------
 
 void MCP2515_can_rx0(can_t *can){
   read_id_MCP2515(MCP2515_RXB0SIDL, &can->COB_ID);
@@ -279,6 +311,8 @@ void MCP2515_can_rx1(can_t *can){
   __delay_cycles(DELAY_1ms);
 }
 
+//----------------------------------------------- Functions to Clear receive registers  ------------------------------------------------------
+
 void MCP2515_clear_rx0(void){
   bit_modify_MCP2515(MCP2515_CANINTF, MCP2515_RX0IF, 0x00);
 }
@@ -291,48 +325,41 @@ void MCP2515_int_clear(void){
   write_MCP2515(MCP2515_CANINTF, MCP2515_CANINTF_ALL_DISABLE);
 }
 
+//----------------------------------------------- Function to Test SPI communication ------------------------------------------------------
+
 BOOL MCP2515_spi_test (void){
   uint16_t data_rcv[11] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  uint16_t data_snd[11]={0x88,0x03,0x90,0x02,0x05,0x02,0x3f,0x23,0x40,0x40,0x00};// Array der zu sendenen Daten.
+  uint16_t data_snd[11]={0x88,0x03,0x90,0x02,0x05,0x02,0x3f,0x23,0x40,0x40,0x00};   //Data array
 
-  write_MCP2515(MCP2515_CANCTRL, data_snd[0]);                                   // 1. Gehe im Konfig-Mode. Zum Überprüfen, ...
-  data_rcv[0] = read_MCP2515(MCP2515_CANCTRL);                                     // schreibe zuerst in den Registern etwas und anschließend lese es aus. ...
+  write_MCP2515(MCP2515_CANCTRL, data_snd[0]);        //Transmit data from buffer to register, then read from register
+  data_rcv[0] = read_MCP2515(MCP2515_CANCTRL);
 
-  write_MCP2515(MCP2515_CNF1,data_snd[1]);                                       // ...
-  write_MCP2515(MCP2515_CNF2,data_snd[2]);                                       // ...
-  write_MCP2515(MCP2515_CNF3,data_snd[3]);                                       // ...
-  data_rcv[1] = read_MCP2515(MCP2515_CNF1);                                        // ...
-  data_rcv[2] = read_MCP2515(MCP2515_CNF2);                                        // ...
-  data_rcv[3] = read_MCP2515(MCP2515_CNF3);                                        // ...
-  write_MCP2515(MCP2515_RXM0SIDH, data_snd[4]);                                  // ...
-  write_MCP2515(MCP2515_RXM0SIDL, data_snd[5]);                                  // ...
-  data_rcv[4] = read_MCP2515(MCP2515_RXM0SIDH);                                    // ...
-  data_rcv[5] = read_MCP2515(MCP2515_RXM0SIDL);                                    // ...
-  write_MCP2515(MCP2515_CANINTE, data_snd[6]);                                   // ...
-  data_rcv[6] = read_MCP2515(MCP2515_CANINTE);                                     // ...
-  write_MCP2515(MCP2515_CANINTF, data_snd[7]);                                   // ...
-  data_rcv[7] = read_MCP2515(MCP2515_CANINTF);                                     // ...
-  write_MCP2515(MCP2515_TXB0SIDL, data_snd[8]);                                  // ...
-  data_rcv[8] = read_MCP2515(MCP2515_TXB0SIDL);                                    // ...
-  write_MCP2515(MCP2515_TXB1SIDL, data_snd[9]);                                  // ...
-  data_rcv[9] = read_MCP2515(MCP2515_TXB1SIDL);                                    // ...
+  write_MCP2515(MCP2515_CNF1,data_snd[1]);
+  write_MCP2515(MCP2515_CNF2,data_snd[2]);
+  write_MCP2515(MCP2515_CNF3,data_snd[3]);
+  data_rcv[1] = read_MCP2515(MCP2515_CNF1);
+  data_rcv[2] = read_MCP2515(MCP2515_CNF2);
+  data_rcv[3] = read_MCP2515(MCP2515_CNF3);
+  write_MCP2515(MCP2515_RXM0SIDH, data_snd[4]);
+  write_MCP2515(MCP2515_RXM0SIDL, data_snd[5]);
+  data_rcv[4] = read_MCP2515(MCP2515_RXM0SIDH);
+  data_rcv[5] = read_MCP2515(MCP2515_RXM0SIDL);
+  write_MCP2515(MCP2515_CANINTE, data_snd[6]);
+  data_rcv[6] = read_MCP2515(MCP2515_CANINTE);
+  write_MCP2515(MCP2515_CANINTF, data_snd[7]);
+  data_rcv[7] = read_MCP2515(MCP2515_CANINTF);
+  write_MCP2515(MCP2515_TXB0SIDL, data_snd[8]);
+  data_rcv[8] = read_MCP2515(MCP2515_TXB0SIDL);
+  write_MCP2515(MCP2515_TXB1SIDL, data_snd[9]);
+  data_rcv[9] = read_MCP2515(MCP2515_TXB1SIDL);
 
-  write_MCP2515(MCP2515_CANCTRL, data_snd[10]);                                  // ... (gehe auch zum Normalmodus)
-  data_rcv[10] = read_MCP2515(MCP2515_CANCTRL);                                    // .-
+  write_MCP2515(MCP2515_CANCTRL, data_snd[10]);
+  data_rcv[10] = read_MCP2515(MCP2515_CANCTRL);
   char i;
-  for(i = 0; i < 11; i++)                                                   // 2. Vergleiche das empfangene mit dem beschiebenen Array. ...
-  {                                                                              // ...
-    if(data_snd[i] != data_rcv[i]) return FALSE;                                 // Falls Ungleich. Kommunikation Fehlerhaft (FALSE = 0). ...
-  } // for                                                                       // Sonst ...
+  for(i = 0; i < 11; i++){
+    if(data_snd[i] != data_rcv[i]) return FALSE;    // Check to see if receive buffer = transfer buffer
+  }
 
-  MCP2515_init();                                                                // Muss neu Initialisieren da ich dem MCP2515 manipuliert habe. ...
-  return TRUE;                                                                   // Sende das Kommunikation mit MCP2515 stabil ist (TRUE = 1).-
+  MCP2515_init();
+  return TRUE;                                      //Return TRUE if SPI functions correctly
 }
-
-
-
-
-
-
-
-

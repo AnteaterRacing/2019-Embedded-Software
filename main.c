@@ -17,6 +17,7 @@ int startButton = 0;
 int CAN_Data[5];
 char ready= 0x00;
 char fault = 0x00;
+char throttle, brake, steering;
 
 int main(void)
 {
@@ -48,29 +49,59 @@ int main(void)
 
     while(1){
         read_ADC();
+        //Calibrations for inputs
+        if(brakeInput < 430){   //421 is resting
+            brake = 0x00;
+        }
+        else{
+            brake = brakeInput >> 2;
+        }
+        if(acc1Input < 420 || acc1Input > 690){   //416 is resting   679 is full press
+            throttle = 0x00;
+        }
+        else{
+            throttle = 0.958*(acc1Input - 409);
+        }
+        steering = steeringInput >> 2;
+
+
         if(P2IN & BIT1){
             startButton = 0;
         }
         else{
             startButton = 1;
         }
-        if(brakeInput > 0x0F && startButton==1){
+        if(brakeInput > 0xA0 && startButton==1){
             ready = 0xFF;
             while (1) {
                 read_ADC();
         //      if(APPS_Fault(acc1Input,acc2Input)){
-        //          test[0] = 0x00;
-        //          test[1] = steeringInput >> 2;
-        //          test[2] = brakeInput >> 2;
+        //          fault=0xFF;
         //      }
         //      else{
-        //          test[0] = acc1Input >> 2;
-        //          test[1] = steeringInput >> 2;
-        //          test[2] = brakeInput >> 2;
+        //          fault=0x00;
         //      }
-                CAN_Data[0] = steeringInput >> 2;
-                CAN_Data[1] = brakeInput >> 2;
-                CAN_Data[2] = acc1Input >> 2;
+
+                //Calibrations for inputs
+                if(brakeInput < 430){   //421 is resting
+                    brake = 0x00;
+                }
+                else{
+                    brake = brakeInput >> 2;
+                }
+                if(acc1Input < 420 || acc1Input > 690){   //416 is resting   679 is full press
+                    throttle = 0x00;
+                }
+                else{
+                    throttle = 0.958*(acc1Input - 409);
+                }
+                steering = steeringInput >> 2;
+
+
+
+                CAN_Data[0] = steering;
+                CAN_Data[1] = brake;
+                CAN_Data[2] = throttle;
                 CAN_Data[3] = fault;
                 CAN_Data[4] = ready;
 //                P1OUT ^= 0;
@@ -82,9 +113,9 @@ int main(void)
 
             }
        }
-        CAN_Data[0] = steeringInput >> 2;
-        CAN_Data[1] = brakeInput >> 2;
-        CAN_Data[2] = acc1Input >> 2;
+        CAN_Data[0] = steering;
+        CAN_Data[1] = brake;
+        CAN_Data[2] = throttle;
         CAN_Data[3] = fault;
         CAN_Data[4] = ready;
         if(MCP2515_spi_test ()){
